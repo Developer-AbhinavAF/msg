@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MessageBubble.css';
-import { formatRelativeTime, formatDuration, formatTime, getEditableTime } from '../utils/timeFormat';
+import { formatDuration, formatTime, getEditableTime } from '../utils/timeFormat';
 import { emitReaction, emitEditMessage, emitDeleteMessage, emitReadReceipt } from '../utils/socket';
 import { useChat } from '../context/ChatContext';
 import { ReactionPicker } from './ReactionPicker';
@@ -303,14 +303,24 @@ export const MessageBubble = ({ message, isSent, currentUserId, onlineStatus }) 
         {renderContent()}
 
         <div className="message-footer">
-          <span className="message-time" title={formatTime(message.timestamp)}>
-            {formatRelativeTime(message.timestamp)}
+          <span className="message-time">
+            {formatTime(message.timestamp)}
           </span>
 
           {message.isEdited && <span className="edited-label">(edited)</span>}
 
           {renderStatusIndicators()}
         </div>
+
+        {message.reactions && message.reactions.length > 0 && (
+          <div className={`reactions ${isSent ? 'sent-reactions' : 'received-reactions'}`}>
+            {message.reactions.map((reaction, idx) => (
+              <span key={idx} className="reaction">
+                {reaction.emoji} <small>{reaction.count || 1}</small>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="message-actions">
@@ -359,16 +369,6 @@ export const MessageBubble = ({ message, isSent, currentUserId, onlineStatus }) 
 
         {showReactions && <ReactionPicker onSelectEmoji={handleAddReaction} />}
       </div>
-
-      {message.reactions && message.reactions.length > 0 && (
-        <div className={`reactions ${isSent ? 'sent-reactions' : 'received-reactions'}`}>
-          {message.reactions.map((reaction, idx) => (
-            <span key={idx} className="reaction">
-              {reaction.emoji} <small>{reaction.count || 1}</small>
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

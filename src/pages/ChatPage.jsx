@@ -108,14 +108,14 @@ export const ChatPage = ({ onLogout }) => {
         [data.userId]: data.isTyping,
       }));
 
-      // Set timeout to clear typing after 20 seconds
+      // Set timeout to clear typing after 16 seconds
       if (data.isTyping) {
         const timeout = setTimeout(() => {
           setTypingStatus((prev) => ({
             ...prev,
             [data.userId]: false,
           }));
-        }, 20000);
+        }, 16000);
 
         setTypingTimeout((prev) => ({
           ...prev,
