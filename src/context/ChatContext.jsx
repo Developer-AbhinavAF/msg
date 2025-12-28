@@ -11,6 +11,7 @@ export const ChatProvider = ({ children }) => {
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [typingStatus, setTypingStatus] = useState({});
   const [onlineStatus, setOnlineStatus] = useState({});
+  const [lastSeenStatus, setLastSeenStatus] = useState({});
   const [replyingTo, setReplyingTo] = useState(null);
   const messagesEndRef = useRef(null);
   const loadingRef = useRef(false);
@@ -99,6 +100,8 @@ export const ChatProvider = ({ children }) => {
         setTypingStatus,
         onlineStatus,
         setOnlineStatus,
+        lastSeenStatus,
+        setLastSeenStatus,
         replyingTo,
         setReplyingTo,
         addMessage,

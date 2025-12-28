@@ -32,6 +32,12 @@
   gap: 8px;
 }
 
+.status-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .online-indicator {
   width: 10px;
   height: 10px;
@@ -63,6 +69,12 @@
 
 .status-text.offline {
   color: var(--color-text-secondary);
+}
+
+.last-seen-text {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
 }
 
 @keyframes glow {

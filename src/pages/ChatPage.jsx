@@ -16,6 +16,7 @@ import {
   onMessageDeleted,
   onMessageRead,
 } from '../utils/socket';
+import { requestNotificationPermission, sendMessageNotification } from '../utils/notification';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
 import { ChatHeader } from '../components/ChatHeader';
@@ -30,12 +31,19 @@ export const ChatPage = ({ onLogout }) => {
     loadMoreMessages,
     onlineStatus,
     setOnlineStatus,
+    lastSeenStatus,
+    setLastSeenStatus,
     typingStatus,
     setTypingStatus,
   } = useChat();
   const [isConnected, setIsConnected] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState({});
   const socketRef = useRef(null);
+
+  // Request notification permission
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   // Screen lock detection
   useEffect(() => {
@@ -72,6 +80,12 @@ export const ChatPage = ({ onLogout }) => {
     onMessageReceived((data) => {
       console.log('📨 Received message:', data.message);
       addMessage(data.message);
+      
+      // Send notification if it's from the other user
+      if (data.message.senderId !== user?.userId) {
+        const messagePreview = data.message.content?.substring(0, 50) || 'New message';
+        sendMessageNotification(data.message.senderName || 'User', messagePreview);
+      }
     });
 
     // Listen for online status updates
@@ -91,6 +105,13 @@ export const ChatPage = ({ onLogout }) => {
           ...prev,
           [data.userId]: false,
         }));
+        // Update last seen time when user goes offline
+        if (data.lastSeen) {
+          setLastSeenStatus((prev) => ({
+            ...prev,
+            [data.userId]: data.lastSeen,
+          }));
+        }
       });
     }
 
