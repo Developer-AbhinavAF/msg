@@ -116,21 +116,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 8px;
-  background: #222;
-  border-radius: 16px;
-  position: absolute;
-  border: 1px solid #444;
-  z-index: 50;
-  bottom: -12px;
-}
-
-.reactions.sent-reactions {
-  right: 12px;
-}
-
-.reactions.received-reactions {
-  left: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  width: 100%;
+  align-content: flex-start;
+  max-width: 100%;
 }
 
 .reaction {
@@ -138,18 +129,24 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 2px 6px;
-  background: #333;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 150ms ease;
-  border: 1px solid #555;
+  white-space: nowrap;
 }
 
 .reaction:hover {
-  background: #444;
+  background: rgba(0, 0, 0, 0.3);
   transform: scale(1.1);
+}
+
+.reaction small {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-left: 2px;
 }
 
 .message-actions {
