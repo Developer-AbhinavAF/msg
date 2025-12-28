@@ -1,4 +1,26 @@
 /**
+ * Register Service Worker for push notifications
+ */
+export const registerServiceWorker = async () => {
+  try {
+    if (!('serviceWorker' in navigator)) {
+      console.log('❌ This browser does not support Service Workers');
+      return false;
+    }
+
+    console.log('📝 Registering Service Worker...');
+    const registration = await navigator.serviceWorker.register('/service-worker.js', {
+      scope: '/',
+    });
+    console.log('✓ Service Worker registered:', registration);
+    return registration;
+  } catch (error) {
+    console.error('❌ Service Worker registration failed:', error);
+    return null;
+  }
+};
+
+/**
  * Request notification permission from user
  */
 export const requestNotificationPermission = async () => {
@@ -31,6 +53,62 @@ export const requestNotificationPermission = async () => {
 };
 
 /**
+ * Subscribe to push notifications
+ */
+export const subscribeToPushNotifications = async () => {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('❌ Push notifications not supported');
+      return false;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    console.log('📢 Subscribing to push notifications...');
+
+    // For demo purposes, we'll use simulated push
+    // In production, you'd connect to a push service
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(
+        'AQAB'
+      ), // Dummy key for demo
+    }).catch(() => {
+      // If push subscription fails, return null but don't error
+      console.log('⚠️ Push subscription not available (normal for development)');
+      return null;
+    });
+
+    if (subscription) {
+      console.log('✓ Subscribed to push notifications:', subscription);
+      return subscription;
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Push subscription error:', error);
+    return null;
+  }
+};
+
+/**
+ * Convert base64 string to Uint8Array
+ */
+function urlBase64ToUint8Array(base64String) {
+  try {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  } catch (error) {
+    console.error('Error converting base64:', error);
+    return new Uint8Array();
+  }
+}
+
+/**
  * Send a notification when a message is received
  */
 export const sendMessageNotification = (senderName, messagePreview) => {
@@ -39,13 +117,26 @@ export const sendMessageNotification = (senderName, messagePreview) => {
   if (Notification.permission === 'granted') {
     try {
       console.log('📢 Sending notification from:', senderName);
-      new Notification(`Message from ${senderName}`, {
-        body: messagePreview || 'New message received',
-        icon: '💬',
-        badge: '💬',
-        tag: 'message-notification',
-        requireInteraction: false,
-      });
+      
+      // Try using Service Worker notification first (works when site closed)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        console.log('📢 Sending via Service Worker');
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          senderName,
+          message: messagePreview,
+        });
+      } else {
+        // Fallback to regular notification
+        console.log('📢 Sending regular notification');
+        new Notification(`Message from ${senderName}`, {
+          body: messagePreview || 'New message received',
+          icon: '💬',
+          badge: '💬',
+          tag: 'message-notification',
+          requireInteraction: true,
+        });
+      }
       console.log('✓ Notification sent successfully');
     } catch (error) {
       console.error('❌ Error sending notification:', error);

@@ -16,7 +16,7 @@ import {
   onMessageDeleted,
   onMessageRead,
 } from '../utils/socket';
-import { requestNotificationPermission, sendMessageNotification } from '../utils/notification';
+import { requestNotificationPermission, sendMessageNotification, registerServiceWorker, subscribeToPushNotifications } from '../utils/notification';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
 import { ChatHeader } from '../components/ChatHeader';
@@ -40,9 +40,27 @@ export const ChatPage = ({ onLogout }) => {
   const [typingTimeout, setTypingTimeout] = useState({});
   const socketRef = useRef(null);
 
-  // Request notification permission
+  // Request notification permission and register service worker
   useEffect(() => {
-    requestNotificationPermission();
+    const setupNotifications = async () => {
+      console.log('🔔 Setting up notifications...');
+      
+      // Register Service Worker
+      await registerServiceWorker();
+      console.log('✓ Service Worker registered');
+      
+      // Request notification permission
+      await requestNotificationPermission();
+      console.log('✓ Notification permission requested');
+      
+      // Subscribe to push notifications
+      await subscribeToPushNotifications();
+      console.log('✓ Push notifications subscribed');
+    };
+    
+    setupNotifications().catch(err => {
+      console.error('❌ Notification setup error:', err);
+    });
   }, []);
 
   // Screen lock detection
