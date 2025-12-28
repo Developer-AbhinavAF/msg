@@ -484,7 +484,7 @@ video {
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
-  align-content: flex-start;
+  align-content: flex-end;
   max-width: fit-content;
   overflow: hidden;
 }
