@@ -62,29 +62,56 @@ export const MessageInput = ({ onSendMessage, senderName = 'User' }) => {
   // Voice recording
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      console.log('🎤 Requesting microphone access...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      });
+      
+      console.log('✓ Microphone access granted');
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
+        ? 'audio/webm' 
+        : 'audio/wav';
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorderRef.current.onstop = () => {
+        console.log('🎤 Recording stopped, processing audio...');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Audio = reader.result.split(',')[1];
+          console.log('🎤 Sending voice message, duration:', recordingTime, 's');
           emitVoiceMessage(base64Audio, recordingTime, senderName);
           setRecordingTime(0);
         };
         reader.readAsDataURL(audioBlob);
 
         // Stop all tracks
-        stream.getTracks().forEach((track) => track.stop());
+        stream.getTracks().forEach((track) => {
+          track.stop();
+          console.log('✓ Audio track stopped');
+        });
+      };
+
+      mediaRecorderRef.current.onerror = (error) => {
+        console.error('❌ Recording error:', error);
+        alert('Error during recording: ' + error.message);
+        setIsRecording(false);
       };
 
       mediaRecorderRef.current.start();
+      console.log('✓ Recording started');
       setIsRecording(true);
       setRecordingTime(0);
 
@@ -92,8 +119,14 @@ export const MessageInput = ({ onSendMessage, senderName = 'User' }) => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Cannot access microphone. Please check permissions.');
+      console.error('❌ Microphone access error:', error);
+      if (error.name === 'NotAllowedError') {
+        alert('Microphone permission denied. Please enable it in browser settings.');
+      } else if (error.name === 'NotFoundError') {
+        alert('No microphone found. Please check your device.');
+      } else {
+        alert('Cannot access microphone: ' + error.message);
+      }
     }
   };
 

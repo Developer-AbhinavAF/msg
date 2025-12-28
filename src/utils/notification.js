@@ -3,24 +3,30 @@
  */
 export const requestNotificationPermission = async () => {
   if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
+    console.log('❌ This browser does not support notifications');
     return false;
   }
 
+  console.log('📢 Current notification permission:', Notification.permission);
+
   if (Notification.permission === 'granted') {
+    console.log('✓ Notifications already enabled');
     return true;
   }
 
   if (Notification.permission !== 'denied') {
     try {
+      console.log('📢 Requesting notification permission...');
       const permission = await Notification.requestPermission();
+      console.log('📢 Notification permission result:', permission);
       return permission === 'granted';
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      console.error('❌ Error requesting notification permission:', error);
       return false;
     }
   }
 
+  console.log('❌ Notifications are blocked by the user');
   return false;
 };
 
@@ -28,8 +34,11 @@ export const requestNotificationPermission = async () => {
  * Send a notification when a message is received
  */
 export const sendMessageNotification = (senderName, messagePreview) => {
+  console.log('📢 Trying to send notification. Permission:', Notification.permission);
+  
   if (Notification.permission === 'granted') {
     try {
+      console.log('📢 Sending notification from:', senderName);
       new Notification(`Message from ${senderName}`, {
         body: messagePreview || 'New message received',
         icon: '💬',
@@ -37,9 +46,12 @@ export const sendMessageNotification = (senderName, messagePreview) => {
         tag: 'message-notification',
         requireInteraction: false,
       });
+      console.log('✓ Notification sent successfully');
     } catch (error) {
-      console.error('Error sending notification:', error);
+      console.error('❌ Error sending notification:', error);
     }
+  } else {
+    console.log('❌ Cannot send notification - permission not granted. Current:', Notification.permission);
   }
 };
 
